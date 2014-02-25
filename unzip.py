@@ -25,7 +25,7 @@ def main(directory=".", verbose=False):
         if verbose: print "in:", d
         for z in globi("*.zip"):
             if verbose: print "unzipping:", z
-            call(["unzip", "-u", z])
+            call(["unzip", "-u", "-q", z])
         for s in glob("*/"):
             Q.append(os.path.abspath(s))
 
