@@ -1,40 +1,35 @@
 #!/usr/bin/env python
 
-from zipfile import ZipFile
-from os import getcwd, chdir
-from sys import argv
-from os.path import abspath
+import os
 from glob import glob
 from collections import deque
 from subprocess import call
 
 
-def i_glob(pattern):
-    """casei-insensitive glob. inspired by Geoffrey Irving"""
+def globi(pattern):
+    """case-insensitive glob. inspired by Geoffrey Irving"""
     lowerUpper = lambda c: "[{0}{1}]".format(c.lower(), c.upper())
     either = lambda c: lowerUpper(c) if c.isalpha() else c
     return glob("".join(map(either, pattern)))
 
-
-def main(directory=".", verbose=False, tree=False):
+def main(directory=".", verbose=False):
     """bft of sub-directories, unzipping along the way"""
 
-    chdir(directory)
-    directory = getcwd()
+    os.chdir(directory)
+    directory = os.getcwd()
 
     Q = deque([directory])
     while Q:
         d = Q.popleft()
-        chdir(d)
+        os.chdir(d)
         if verbose: print "in:", d
-        for z in i_glob("*.zip"):
+        for z in globi("*.zip"):
             if verbose: print "unzipping:", z
-            ZipFile(z).extractall()
+            call(["unzip", "-u", z])
         for s in glob("*/"):
-            Q.append(abspath(s))
+            Q.append(os.path.abspath(s))
 
-    chdir(directory)
-    if tree: call(["tree"])
+    os.chdir(directory)
 
 
 if __name__ == "__main__":
@@ -44,13 +39,9 @@ if __name__ == "__main__":
     help = "starting directory"
     p.add_argument("starting_dir", nargs='?', help=help, default=".")
 
-    help, action = "increase output verbosity", "store_true"
+    help, action = "show directory and zip file names", "store_true"
     p.add_argument("-v", "--verbose", help=help, action=action)
 
-    help = "show directory tree"
-    p.add_argument("-t", "--tree", help=help, action=action)
-
     args = p.parse_args()
-    d, v, t = args.starting_dir, args.verbose, args.tree
-    main(directory=d, verbose=v, tree=t)
+    main(directory=args.starting_dir, verbose=args.verbose)
 
